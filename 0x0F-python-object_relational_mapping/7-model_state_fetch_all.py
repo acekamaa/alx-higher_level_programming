@@ -2,31 +2,27 @@
 """"    All states via SQLAlchemy   """
 
 if __name__ == "__main__":
-
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
-from sqlalchemy import inspect
-
-def list_states(username, password, database):
-    # Create engine
-    engine = create_engine(f'mysql://{username}:{password}@localhost/{database}')
-    
-    # Import State and Base from model_state
+    from sqlalchemy import create_engine
+    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.orm import sessionmaker
+    import sys
     from model_state import Base, State
-    
-    # Create Base metadata
+
+    inp = sys.argv
+    if ln(inp) < 4:
+        exit(1)
+    conn_str = 'mysql+mysqldb://{}:{}@localhost:3306{}'
+    engine = create_engine(conn_str.format(inp[1], inp[2], inp[3]))
+    Session = sessionmaker(bind=engine)
+
     Base.metadata.create_all(engine)
-    
-    # Inspect the table
-    inspector = inspect(engine)
-    table = inspector.get_table('states')
-    
-    # Get all rows from the table
-    rows = table.select().execute()
-    
-    # Print the results
-    for row in rows:
-        print(row)
+
+    session = Session()
+
+    output = session.query(State).order_by(State.id).all()
+    for state in output:
+        print("{}: {}".format(state.id, state.name))
+
+    session.close()
     
 
